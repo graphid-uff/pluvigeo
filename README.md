@@ -238,6 +238,15 @@ Se a pluvigeo for útil no seu trabalho, cite-a. Os dados de citação estão em
 
 Cite também o Cemaden como fonte dos dados.
 
+## Isenção de responsabilidade
+
+A pluvigeo é fornecida "no estado em que se encontra", sem garantia de qualquer tipo, como prevê a
+[licença](LICENSE). As regras de diagnóstico são automáticas e parte dos limiares é empírica (ver
+[`docs/regras.md`](docs/regras.md)): os resultados dependem dos parâmetros escolhidos e da qualidade dos
+dados de entrada, e devem ser conferidos por quem os utiliza. Os autores e o GRAPHID-UFF não se
+responsabilizam pelos resultados obtidos nem por decisões tomadas com base no uso da biblioteca,
+incluindo as relacionadas a alertas, planejamento ou gestão de risco.
+
 ## Licença
 
 Código sob a licença [BSD-3-Clause](LICENSE): pode ser usado, modificado e redistribuído, inclusive
