@@ -1,0 +1,22 @@
+# Roda os testes a cada envio (push) e a cada pull request, em três versões do Python.
+name: testes
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Instalar a pluvigeo e o pytest
+        run: pip install ".[teste]"
+      - name: Rodar os testes
+        run: python -m pytest testes -q

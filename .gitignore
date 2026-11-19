@@ -1,0 +1,13 @@
+# caches do Python e dos testes
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# pacotes gerados por `python -m build`
+build/
+dist/
+*.egg-info/
+
+# o que o notebook de exemplo grava
+exemplos/saida_exemplo/

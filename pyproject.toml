@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pluvigeo"
+version = "0.1.0"
+description = "Diagnóstico de integridade, ajuste da resolução temporal e plotagem de dados de chuva e umidade do solo das PCDs do Cemaden (biblioteca independente, sem vínculo com o Cemaden)"
+readme = "README.md"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+authors = [{ name = "Artur Nonato Vieira Cereto", email = "arturcereto@id.uff.br" }]
+keywords = ["Cemaden", "chuva", "umidade do solo", "controle de qualidade", "pluviômetro", "PCD", "hidrologia"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: Portuguese (Brazilian)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Topic :: Scientific/Engineering :: Hydrology",
+]
+requires-python = ">=3.10"
+# plotly: figuras de sufixo _interativo
+dependencies = ["pandas>=2.0", "numpy", "matplotlib", "plotly"]
+
+[project.optional-dependencies]
+notebook = ["ipykernel", "nbformat>=4.2"]   # para rodar o notebook de exemplo: pip install -e ".[notebook]"; o plotly precisa do nbformat para mostrar as figuras no notebook
+teste = ["pytest"]                # para rodar os testes: pip install -e ".[teste]"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["testes"]

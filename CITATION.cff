@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "Se você usar a pluvigeo em um trabalho, por favor cite-a como abaixo."
+type: software
+title: "pluvigeo: diagnóstico de integridade, ajuste da resolução temporal e plotagem de dados de chuva e umidade do solo do Cemaden"
+version: 0.1.0
+license: BSD-3-Clause
+authors:
+  - given-names: Artur Nonato Vieira
+    family-names: Cereto
+    affiliation: "GRAPHID, Universidade Federal Fluminense (UFF)"
+    email: arturcereto@id.uff.br
+abstract: >-
+  Biblioteca em Python para ler, diagnosticar, ajustar a resolução temporal e plotar dados de
+  chuva e de umidade do solo das plataformas de coleta de dados (PCDs) do Cemaden, baixados da
+  Plataforma de Entrega de Dados (PED) ou do mapa interativo. Resultado do Projeto SALAD, do
+  laboratório GRAPHID (UFF). Trabalho independente, sem vínculo com o Cemaden.
+keywords:
+  - Cemaden
+  - chuva
+  - umidade do solo
+  - controle de qualidade
+  - pluviômetro
+  - PCD
+  - hidrologia
