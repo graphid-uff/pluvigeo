@@ -14,7 +14,7 @@ Objetos que circulam (nomes usados no notebook e na documentação)
 Ordem de uso
 ------------
   1. limpar_umidade(dados, cod, acomodacao=...)  aplica as regras e devolve umid_clean[cod]
-  2. tabela_periodos(umid_clean[cod])            os períodos marcados, para você avaliar
+  2. umid_clean[cod].mascaras                    onde cada regra marcou, para você avaliar
   3. exclusao.excluir_periodos(umid_clean[cod], [...])   exclui à mão o que julgou espúrio
   4. resolucao.reamostrar_umidade(umid_clean[cod].operacional, '1h')   hora, dia, mês
 
@@ -238,19 +238,6 @@ def descontinuidades(u: pd.DataFrame, lacuna_min: str = '3D', limiar: float = 3.
     return pd.DataFrame(linhas)
 
 
-def intervalos(mascara: pd.Series, tolerancia: str = '2D', min_pontos: int = 1) -> pd.DataFrame:
-    """Converte uma série booleana (índice datahora) em intervalos, juntando os pontos
-    marcados separados por menos de `tolerancia`. Devolve uma tabela (inicio, fim,
-    leituras) com os intervalos de `min_pontos` leituras ou mais. Usada por tabela_periodos."""
-    t = mascara[mascara].index
-    if len(t) == 0:
-        return pd.DataFrame(columns=['inicio', 'fim', 'leituras'])
-    grupo = (t.to_series().diff() > pd.Timedelta(tolerancia)).cumsum()
-    iv = t.to_series().groupby(grupo.values).agg(['min', 'max', 'size'])
-    iv.columns = ['inicio', 'fim', 'leituras']
-    return iv[iv.leituras >= min_pontos].reset_index(drop=True)
-
-
 # ------------------------------------------------------------------------------
 # Função principal
 # ------------------------------------------------------------------------------
@@ -354,7 +341,7 @@ def limpar_umidade(dados: pd.DataFrame,
                                           acima do máximo, congelado, queda simultânea;
                     'todas'            -> também as suspeitas (pico, queda isolada);
                     'nenhuma'          -> nada; todas as regras só sinalizam.
-                    O que não é apagado continua marcado em `mascaras` e em tabela_periodos,
+                    O que não é apagado continua marcado em `mascaras`,
                     para você avaliar e excluir com exclusao.excluir_periodos.
     pluv_h        : chuva horária já tratada (opcional), no formato descrito no cabeçalho do
                     módulo. Padrão None: a função busca o sensor 10 da estação em `dados`,
@@ -413,82 +400,3 @@ def limpar_umidade(dados: pd.DataFrame,
     return ResultadoUmidade(codestacao=codestacao, bruto=u, limpo=limpo, operacional=operacional, pluv_h=pluv_h,
                             mascaras=m, degraus=deg, descontinuidades=desc, acomodacao=acomodacao,
                             resumo=resumo, excluir=excluir, excluidas=excluidas)
-
-
-# ------------------------------------------------------------------------------
-# Tabela de períodos
-# ------------------------------------------------------------------------------
-MEDIDAS = {
-    'acomodação': 'excluída: sensor ainda se acomodando',
-    'congelado (longo)': 'falha: estação parada repetindo a última leitura',
-    'congelado (curto)': 'falha: valor repetido',
-    'zero (falha)': 'falha: não interpolar',
-    'queda simultânea': 'falha elétrica',
-    'queda isolada': 'suspeita: avaliar; se for espúria, excluir com exclusao.excluir_periodos',
-    'fora de faixa': 'falha: acima do máximo físico',
-    'pico sem chuva': 'suspeita: avaliar; se for espúrio, excluir com exclusao.excluir_periodos',
-    'exclusão manual': 'excluída pelo usuário',
-    'degrau sem chuva': 'avaliar; se o nível não volta, tratar como novo segmento',
-    'descontinuidade após lacuna': 'novo segmento (normalizar separado)',
-}
-
-# Para a tabela ficar legível, pontos marcados próximos no tempo viram um período só.
-# (regra, tipo na tabela, distância máxima entre pontos do mesmo período, mínimo de leituras)
-# Estes valores só agrupam a tabela; não mudam o que é marcado nem o que é excluído.
-AGRUPAMENTO = [('zero', 'zero (falha)', '3D', 3), ('queda_simultanea', 'queda simultânea', '15D', 3),
-               ('faixa', 'fora de faixa', '3D', 1), ('pico', 'pico sem chuva', '3D', 1),
-               ('queda_isolada', 'queda isolada', '30D', 5), ('exclusao_manual', 'exclusão manual', '1D', 1)]
-
-
-def tabela_periodos(umid_clean: ResultadoUmidade) -> pd.DataFrame:
-    """Resume as marcações de `limpar_umidade` em episódios legíveis.
-
-    As regras marcam leitura por leitura (milhares de marcas em `mascaras`). Esta função
-    junta as leituras marcadas próximas no tempo num período só (as distâncias estão em
-    AGRUPAMENTO, ex.: zeros a menos de 3 dias um do outro) e acrescenta a acomodação, os
-    degraus (agrupados por mês) e as descontinuidades. Serve para você ler algumas dezenas
-    de linhas e decidir o que excluir com exclusao.excluir_periodos.
-
-    Entrada: umid_clean[cod], o resultado de limpar_umidade de UMA estação.
-
-    Saída: tabela, uma linha por período, ordenada pelo início, com as colunas
-      estacao, tipo, inicio, fim, niveis (níveis afetados), leituras (quantas),
-      excluida (True = virou NaN; False = só sinalizada), medida (o que fazer) e,
-      se houver acomodação, dentro_da_acomodacao.
-    """
-    res = umid_clean
-    linhas = []
-    u = res.bruto
-
-    def add(tipo, a, b, niveis, n, excluida):
-        linhas.append(dict(estacao=res.codestacao, tipo=tipo, inicio=pd.Timestamp(a), fim=pd.Timestamp(b),
-                           niveis=niveis, leituras=int(n), excluida=excluida, medida=MEDIDAS.get(tipo, '')))
-
-    if res.acomodacao:
-        a, b = res.acomodacao
-        add('acomodação', max(pd.Timestamp(a), u.index.min()), b, 'todos', u.loc[a:b].notna().values.sum(), True)
-    for chave, tipo, tol, mp in AGRUPAMENTO:
-        f = res.mascaras[chave]
-        for _, x in intervalos(f.any(axis=1), tol, mp).iterrows():
-            lv = f.loc[x.inicio:x.fim].sum()
-            lv = lv[lv > 0]
-            add(tipo, x.inicio, x.fim, ','.join(lv.index), lv.sum(), chave in res.excluidas)
-    f = res.mascaras['congelado']
-    for _, x in intervalos(f.any(axis=1), '3D').iterrows():
-        lv = f.loc[x.inicio:x.fim].sum()
-        lv = lv[lv > 0]
-        longo = (x.fim - x.inicio) > pd.Timedelta('7D') and len(lv) >= 3   # estação parada
-        add('congelado (longo)' if longo else 'congelado (curto)', x.inicio, x.fim, ','.join(lv.index), lv.sum(),
-            'congelado' in res.excluidas)
-    for _, g in (res.descontinuidades if res.descontinuidades is not None else pd.DataFrame()).iterrows():
-        saltos = ' '.join(f'{n}:{g["delta_" + n]:+.0f}' for n in NIV if pd.notna(g.get('delta_' + n)))
-        add('descontinuidade após lacuna', g.inicio_lacuna, g.fim_lacuna, saltos, 0, False)
-    deg = res.degraus
-    if deg is not None and len(deg):
-        for _, g in deg.groupby(deg.datahora.dt.to_period('M')):
-            add('degrau sem chuva', g.datahora.min(), g.datahora.max(), ','.join(sorted(g.nivel.unique())), len(g), False)
-    T = pd.DataFrame(linhas)
-    if len(T) and res.acomodacao:
-        fim_acom = pd.Timestamp(res.acomodacao[1])
-        T['dentro_da_acomodacao'] = (T.tipo != 'acomodação') & (T.fim <= fim_acom)
-    return T.sort_values('inicio').reset_index(drop=True) if len(T) else T

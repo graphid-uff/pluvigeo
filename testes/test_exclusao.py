@@ -57,9 +57,8 @@ def test_umidade_so_nos_niveis_pedidos():
     assert novo.resumo['n_exclusao_manual'] == 1
     assert novo.resumo['excluidas'] == r.resumo['excluidas'] + 1
     assert r.limpo.iloc[200, 0] == u.iloc[200, 0]                      # entrada intacta
-    T = lu.tabela_periodos(novo)
-    manual = T[T.tipo == 'exclusão manual']
-    assert len(manual) == 1 and manual.niveis.iloc[0] == 'n1' and manual.excluida.iloc[0]
+    manual = novo.mascaras['exclusao_manual']                         # a exclusão fica registrada
+    assert manual.iloc[200, 0] and manual.values.sum() == 1 and 'exclusao_manual' in novo.excluidas
 
 
 def test_umidade_sem_niveis_exclui_todas_as_profundidades():

@@ -26,7 +26,7 @@ e nesta documentação (as funções aceitam qualquer nome de variável). A regr
 | `pluv_raw` | `{cod: série de chuva bruta}` | `leitura.chuva_por_estacao` | `chuva.regularizar_chuva` |
 | `umid_raw` | `{cod: umidade bruta n1..n6}` | `leitura.umidade_por_estacao` | `figuras.serie_umidade_interativo` (escolher a acomodação) |
 | `pluv_reg` | `{cod: tabela regular de chuva}`; a série a usar é `pluv_reg[cod]['chuva_mm']` | `chuva.regularizar_chuva` | `relatorio_falhas`, `retornos_pos_falha`, `acumulados`, `resumo_estacao`, `excluir_periodos`, `reamostrar_chuva`, `serie_chuva`, `status_pluv` |
-| `umid_clean` | `{cod: resultado da limpeza}`; a série a usar é `umid_clean[cod].operacional` | `umidade.limpar_umidade` (uma estação por vez) | `tabela_periodos`, `excluir_periodos`, `reamostrar_umidade`, `serie_umidade`, `status_umid` |
+| `umid_clean` | `{cod: resultado da limpeza}`; a série a usar é `umid_clean[cod].operacional` | `umidade.limpar_umidade` (uma estação por vez) | `excluir_periodos`, `reamostrar_umidade`, `serie_umidade`, `status_umid` |
 | `pluv_rs` | `{cod: chuva em outra resolução}` | `resolucao.reamostrar_chuva` | figuras |
 | `umid_rs` | `{cod: umidade em outra resolução}` | `resolucao.reamostrar_umidade` | figuras |
 
@@ -231,20 +231,6 @@ foi dado), ou se o modo de exclusão não existe.
 *Nota:* o resultado não traz séries horárias nem diárias. Para mudar a resolução, use
 `resolucao.reamostrar_umidade(umid_clean[cod].operacional, '1h')`.
 
-### `tabela_periodos(umid_clean)`
-
-Resume as marcações, que são feitas leitura por leitura, em episódios legíveis: junta as leituras
-marcadas próximas no tempo num período só e acrescenta a acomodação, os degraus (por mês) e as
-descontinuidades. Serve para decidir o que excluir com `exclusao.excluir_periodos`.
-
-| Entrada | Tipo | Padrão | Descrição |
-|---|---|---|---|
-| `umid_clean` | resultado da limpeza | obrigatório | `umid_clean[cod]`, de uma estação |
-
-**Saída:** tabela, uma linha por período: `estacao`, `tipo`, `inicio`, `fim`, `niveis` (afetados),
-`leituras`, `excluida` (bool: virou NaN ou só foi sinalizado), `medida` (o que fazer) e, se houver
-acomodação, `dentro_da_acomodacao`.
-
 ### Regras isoladas, usadas por `limpar_umidade`
 
 | Função | Entrada | Parâmetros (padrão) | Saída |
@@ -258,7 +244,6 @@ acomodação, `dentro_da_acomodacao`.
 | `flag_picos(u, pluv_h, limiar=3.0, k=12, horas_chuva=6)` | `u`; `pluv_h`: chuva horária (mm) | `limiar` (p.p.), `k`, `horas_chuva` | máscara bool; o pico só é marcado se a chuva das 6 h anteriores é conhecida e zero |
 | `acha_degraus(u, pluv_h, limiar=1.0, k=6)` | `u`; `pluv_h` | `limiar` (p.p.), `k` | tabela (`datahora`, `nivel`, `salto`, `chuva12h`, `motivo`); nada é apagado |
 | `descontinuidades(u, lacuna_min='3D', limiar=3.0, min_niveis=2)` | `u` | `lacuna_min`, `limiar` (p.p.), `min_niveis` | tabela (`inicio_lacuna`, `fim_lacuna`, `dias`, `delta_n1`…); nada é apagado |
-| `intervalos(mascara, tolerancia='2D', min_pontos=1)` | `mascara`: `Series` bool | `tolerancia`, `min_pontos` | tabela (`inicio`, `fim`, `leituras`); usada por `tabela_periodos` |
 
 ---
 
@@ -278,7 +263,7 @@ regras não pegaram (ou só sinalizaram).
 
 - chuva: `chuva_mm` = NaN, `valido` = `False` e `exclusao_manual` = `True` nos instantes;
 - umidade: a máscara `exclusao_manual` ganha as leituras, `limpo`, `operacional` e `resumo` são
-  refeitos, e `tabela_periodos` passa a mostrar a exclusão.
+  refeitos.
 
 ---
 

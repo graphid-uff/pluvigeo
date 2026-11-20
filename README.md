@@ -77,7 +77,8 @@ chuva.relatorio_falhas(pluv_reg)                          # uma linha por estaç
 # 3. umidade (PCDs Geo): limpeza por regras, direto da tabela lida, uma estação por vez
 umid_clean = {}
 umid_clean['330390605G'] = umidade.limpar_umidade(dados, '330390605G', acomodacao=('2021-11-01', '2022-07-31'))
-umidade.tabela_periodos(umid_clean['330390605G'])         # o que foi excluído e o que só foi sinalizado
+m = umid_clean['330390605G'].mascaras['queda_isolada']        # onde uma regra marcou (True), por nível
+m[m.any(axis=1)]
 
 # 4. exclusão manual do que você julgou espúrio (a mesma função para chuva e umidade)
 umid_clean['330390605G'] = exclusao.excluir_periodos(umid_clean['330390605G'], [('2023-09-18 17:00', '2023-09-18 17:00', ['n1'])])
@@ -92,7 +93,8 @@ figuras.salvar(fig, 'saida/chuva.png')
 ```
 
 O passo a passo completo, com figuras, está no notebook
-[`exemplos/exemplo_uso_pluvigeo.ipynb`](exemplos/exemplo_uso_pluvigeo.ipynb). As entradas e saídas de
+[`exemplos/exemplo_uso_pluvigeo.ipynb`](exemplos/exemplo_uso_pluvigeo.ipynb). Lá, a primeira chamada
+de cada função mostra todos os parâmetros, com os valores padrão comentados. As entradas e saídas de
 cada função, com tipos e formatos, estão em [`docs/funcoes.md`](docs/funcoes.md).
 
 ## Os nomes dos objetos
@@ -129,7 +131,7 @@ flowchart TD
     U1 --> U2["figuras.serie_umidade_interativo<br/>identificar a acomodação"]
     U2 -. "período de acomodação" .-> U3
     L --> U3["3. umidade.limpar_umidade<br/>umid_clean"]
-    U3 --> U4["umidade.tabela_periodos<br/>avaliar as suspeitas"]
+    U3 --> U4["umid_clean[cod].mascaras<br/>avaliar as suspeitas"]
     U4 --> X
     X --> U3
     U3 --> U5["5. resolucao.reamostrar_umidade<br/>umid_rs"]
@@ -148,8 +150,8 @@ Em palavras:
    temporal e figuras.
 3. **Umidade:** olhar a série bruta (`umidade_por_estacao`) com `serie_umidade_interativo` para
    identificar o período de acomodação; limpar com `limpar_umidade(dados, codestacao,
-   acomodacao=...)`, que busca sozinha a chuva da estação; ver os períodos marcados com
-   `tabela_periodos`.
+   acomodacao=...)`, que busca sozinha a chuva da estação; ver onde cada regra marcou em
+   `umid_clean[cod].mascaras`.
 4. **Excluir à mão**, com `excluir_periodos`, o que você julgou espúrio (na chuva ou na umidade).
 5. **Mudar a resolução** com `reamostrar_chuva` e `reamostrar_umidade`.
 6. **Plotar e exportar** com as figuras, `to_csv` e `figuras.salvar`, sempre para uma pasta
@@ -169,7 +171,6 @@ Em palavras:
 | | `acumulados` | somas em **janela móvel** de 1 h a 30 dias, NaN onde a janela tem falha |
 | | `resumo_estacao` | funcionamento, máximos por janela, percentis 50/90/95/99, médias mensais e anuais; de uma estação ou de várias (tabela) |
 | `umidade` | `limpar_umidade` | `umid_clean[cod]`: a partir da tabela lida e do código da estação, aplica as regras; apaga as falhas e sinaliza as suspeitas (`excluir`) |
-| | `tabela_periodos` | as marcações resumidas em períodos, se foram excluídos ou só sinalizados, com a medida recomendada |
 | | `flag_zero`, `flag_faixa`, `flag_congelado`, `flag_quedas`, `flag_quedas_iter`, `flag_picos` | cada regra isolada (devolve uma máscara) |
 | | `acha_degraus`, `descontinuidades` | mudanças de patamar, só listadas |
 | `exclusao` | `excluir_periodos` | exclusão manual de instantes ou períodos, na chuva ou na umidade (com a lista de níveis, se quiser) |
@@ -206,7 +207,7 @@ Em palavras:
 - **Umidade: excluir ou só sinalizar.** `limpar_umidade` tem o parâmetro `excluir`: `'falhas'`
   (padrão) apaga só as falhas do equipamento (zero, acima de 60 %, valor congelado, queda
   simultânea); `'todas'` apaga também as suspeitas (pico sem chuva, queda isolada); `'nenhuma'` só
-  sinaliza. O que não é apagado aparece em `tabela_periodos` (coluna `excluida`) para você
+  sinaliza. O que não é apagado continua marcado em `umid_clean[cod].mascaras` para você
   decidir, e a exclusão é feita com `exclusao.excluir_periodos`.
   *Base das regras:* faixa, valor congelado, queda isolada, pico sem chuva e degraus são adaptações
   simplificadas das categorias do controle de qualidade automático da International Soil Moisture

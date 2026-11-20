@@ -61,8 +61,7 @@ de derivadas da série) e os números, em geral, são empíricos, ajustados aos 
 Cada regra é de **falha** (falha inequívoca do equipamento) ou **suspeita** (comportamento
 estranho que pode ser real). O parâmetro `excluir` de `limpar_umidade` escolhe o que vira NaN
 sozinho: `'falhas'` (padrão) apaga só as falhas; `'todas'` apaga também as suspeitas; `'nenhuma'`
-não apaga nada. O que não é apagado continua marcado em `umid_clean[cod].mascaras` e em
-`tabela_periodos` (coluna `excluida`), para o usuário avaliar e excluir com
+não apaga nada. O que não é apagado continua marcado em `umid_clean[cod].mascaras`, para o usuário avaliar e excluir com
 `exclusao.excluir_periodos`, que aceita a lista de níveis a excluir. A divisão segue a ideia do
 ISMN [1b], que separa as flags de plausibilidade (C, valores impossíveis) das de comportamento da
 série (D, picos, quebras, valores constantes), com uma diferença: aqui o congelado e a queda
@@ -84,10 +83,7 @@ para ela.
 
 Funções: `limpar_umidade` aplica tudo; cada regra é uma função (`flag_zero`, `flag_faixa`,
 `flag_congelado`, `flag_quedas`, `flag_quedas_iter`, `flag_picos`, `acha_degraus`,
-`descontinuidades`) que pode ser usada sozinha; `tabela_periodos` transforma o resultado em uma
-tabela de períodos. As distâncias que `tabela_periodos` usa para juntar pontos próximos num
-período (3, 15 e 30 dias, na constante `AGRUPAMENTO`) só organizam a tabela: não mudam o que é
-marcado nem o que é excluído.
+`descontinuidades`) que pode ser usada sozinha.
 
 A regra do pico e a lista de degraus precisam saber se choveu. `limpar_umidade` usa a chuva da
 própria estação, que nas PCDs Geo vem no mesmo arquivo do PED: lê o sensor 10, aplica

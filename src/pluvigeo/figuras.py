@@ -258,7 +258,7 @@ def serie_umidade_interativo(umid: pd.DataFrame, pluv: pd.Series | None = None, 
     no começo, passe o mouse sobre o ponto em que as camadas fundas param de descer sem
     relação com a chuva e leia a data. Confira a escolha sombreando o período candidato em
     `acomodacao` e depois informe-o em limpar_umidade(dados, cod, acomodacao=(inicio, fim)).
-    Também serve para avaliar as suspeitas de tabela_periodos na série limpa.
+    Também serve para avaliar, na série limpa, as suspeitas marcadas em umid_clean[cod].mascaras.
 
     Entradas e parâmetros: os mesmos de serie_umidade.
     Saída: plotly.graph_objects.Figure (grave com fig.write_html). Precisa do plotly.

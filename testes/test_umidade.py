@@ -99,14 +99,6 @@ def test_degrau_profundo_isolado():
     assert ((d.nivel == 'n6') & (d.motivo == 'sem chuva')).any()
 
 
-def test_intervalos_junta_pontos_proximos():
-    idx = pd.date_range('2024-01-01', periods=10, freq='1D')
-    m = pd.Series([1, 1, 0, 0, 0, 1, 0, 0, 0, 0], index=idx, dtype=bool)
-    iv = lu.intervalos(m, tolerancia='2D')
-    assert iv.leituras.tolist() == [2, 1] and iv.inicio.iloc[1] == idx[5]
-    assert len(lu.intervalos(m, tolerancia='5D')) == 1
-
-
 # ------------------------------------------------------------------------------ limpar_umidade
 def _com_defeitos():
     u = umidade_base()
@@ -137,10 +129,7 @@ def test_modos_de_exclusao():
     assert padrao.limpo.iloc[100, 1:].isna().all() and padrao.limpo.iloc[500].isna().all()
     assert padrao.limpo.iloc[800, 0] == u.iloc[800, 0]    # o pico fica, só sinalizado
     assert padrao.mascaras['pico'].iloc[800, 0] and padrao.resumo['so_sinalizadas'] >= 1
-    T = lu.tabela_periodos(padrao)
-    assert (T.estacao == COD).all()
-    assert not T.loc[T.tipo == 'pico sem chuva', 'excluida'].any()
-    assert T.loc[T.tipo == 'zero (falha)', 'excluida'].all()
+    assert 'zero' in padrao.excluidas and 'pico' not in padrao.excluidas
     assert np.isnan(lu.limpar_umidade(dados, COD, excluir='todas').limpo.iloc[800, 0])
     nada = lu.limpar_umidade(dados, COD, excluir='nenhuma')
     assert nada.limpo.equals(nada.bruto) and nada.resumo['excluidas'] == 0

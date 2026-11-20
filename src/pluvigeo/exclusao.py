@@ -9,8 +9,7 @@ só, para a chuva e para a umidade:
   excluir_periodos(umid_clean[cod], exclusoes)  -> novo resultado da limpeza da umidade
 
 A entrada nunca é alterada: a função devolve uma cópia. A exclusão fica registrada (coluna
-`exclusao_manual` na chuva; máscara `exclusao_manual`, `resumo` e tabela_periodos na
-umidade), e a lista `exclusoes` fica no seu notebook, como registro da decisão.
+`exclusao_manual` na chuva; máscara `exclusao_manual` e `resumo` na umidade), e a lista `exclusoes` fica no seu notebook, como registro da decisão.
 """
 from __future__ import annotations
 
@@ -62,7 +61,7 @@ def excluir_periodos(dado, exclusoes: list):
     -----
       chuva   : chuva_mm = NaN, valido = False e exclusao_manual = True nos instantes.
       umidade : a máscara `exclusao_manual` ganha as leituras; `limpo`, `operacional` e `resumo`
-                são refeitos; tabela_periodos passa a mostrar a exclusão.
+                são refeitos.
     """
     itens = _itens(exclusoes)
     if isinstance(dado, ResultadoUmidade):
